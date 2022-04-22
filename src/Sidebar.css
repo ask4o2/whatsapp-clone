@@ -53,3 +53,13 @@
   background-color: rgb(236, 236, 243);
   overflow: scroll;
 }
+
+@media (max-width: 567px) {
+  .display {
+    display: none;
+    flex: 1;
+  }
+  .sidebar {
+    flex: 1;
+  }
+}

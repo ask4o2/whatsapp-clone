@@ -1,10 +1,5 @@
 import { useParams } from "react-router-dom";
-import {
-  AttachFile,
-  Mic,
-  InsertEmoticon,
-  SearchOutlined,
-} from "@mui/icons-material";
+import { AttachFile, Mic, InsertEmoticon } from "@mui/icons-material";
 import MoreVert from "@mui/icons-material/MoreVert";
 import { Avatar, IconButton } from "@mui/material";
 import React, { useEffect, useState } from "react";
@@ -19,7 +14,9 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import db from "./firebase";
-import { useStateValue } from "./StateProvider";
+import { getUser } from "./store/appSlice";
+import { useSelector } from "react-redux";
+import Sidebar from "./Sidebar";
 
 function Chat() {
   const [input, setInput] = useState("");
@@ -28,7 +25,7 @@ function Chat() {
   const { roomId } = useParams();
   const [roomName, setRoomName] = useState("");
   const [messages, setMessages] = useState([]);
-  const [{ user }] = useStateValue();
+  const user = useSelector(getUser);
 
   useEffect(() => {
     if (roomId) {
@@ -67,64 +64,66 @@ function Chat() {
   };
 
   return (
-    <div className="chat">
-      <div className="chat__header">
-        <Avatar src={`https://avatars.dicebear.com/api/human/${seed}.svg`} />
+    <>
+      <Sidebar responsive />
+      <div className="chat">
+        <div className="chat__header">
+          <Avatar src={`https://avatars.dicebear.com/api/human/${seed}.svg`} />
 
-        <div className="chat__headerInfo">
-          <h3>{roomName}</h3>
-          <p>
-            Last seen at{" "}
-            {new Date(
-              messages[messages.length - 1]?.timestamp?.toDate()
-            ).toUTCString()}
-          </p>
+          <div className="chat__headerInfo">
+            <h3>{roomName}</h3>
+            <p>
+              Last seen at{" "}
+              {new Date(
+                messages[messages.length - 1]?.timestamp?.toDate()
+              ).toUTCString()}
+            </p>
+          </div>
+
+          <div className="chat__headerRight">
+            <IconButton>
+              <AttachFile />
+            </IconButton>
+            <IconButton>
+              <MoreVert />
+            </IconButton>
+          </div>
         </div>
 
-        <div className="chat__headerRight">
-          <IconButton>
-            <SearchOutlined />
-          </IconButton>
-          <IconButton>
-            <AttachFile />
-          </IconButton>
-          <IconButton>
-            <MoreVert />
-          </IconButton>
+        <div className="chat__body">
+          {messages.map((message) => (
+            <p
+              key={message.id}
+              className={`chat__message ${
+                message.name === user.displayName && "chat__receiver"
+              }`}
+            >
+              <span className="chat__name">{message.name}</span>
+              {message.message}
+              <span className="chat__timestamp">
+                {!message.timestamp
+                  ? "just now"
+                  : new Date(message.timestamp?.toDate()).toUTCString()}
+              </span>
+            </p>
+          ))}
+        </div>
+
+        <div className="chat__footer">
+          <InsertEmoticon />
+          <form>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              type="text"
+              placeholder="Type a message"
+            />
+            <button type="submit" onClick={sendMessage}></button>
+          </form>
+          <Mic />
         </div>
       </div>
-
-      <div className="chat__body">
-        {messages.map((message) => (
-          <p
-            key={message.id}
-            className={`chat__message ${
-              message.name === user.displayName && "chat__receiver"
-            }`}
-          >
-            <span className="chat__name">{message.name}</span>
-            {message.message}
-            <span className="chat__timestamp">
-              {new Date(message.timestamp?.toDate()).toUTCString()}
-            </span>
-          </p>
-        ))}
-      </div>
-
-      <div className="chat__footer">
-        <InsertEmoticon />
-        <form>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            type="text"
-            placeholder="Type a message"
-          />
-          <button type="submit" onClick={sendMessage}></button>
-        </form>
-        <Mic />
-      </div>
-    </div>
+    </>
   );
 }
 

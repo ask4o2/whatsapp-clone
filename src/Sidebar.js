@@ -8,11 +8,12 @@ import { SearchOutlined } from "@mui/icons-material";
 import SidebarChat from "./SidebarChat";
 import db from "./firebase";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
-import { useStateValue } from "./StateProvider";
+import { useSelector } from "react-redux";
+import { getUser } from "./store/appSlice";
 
-function Sidebar() {
+function Sidebar({ responsive }) {
   const [rooms, setRooms] = useState([]);
-  const [{ user }] = useStateValue();
+  const user = useSelector(getUser);
 
   useEffect(() => {
     const q = query(collection(db, "rooms"), orderBy("name", "asc"));
@@ -28,7 +29,7 @@ function Sidebar() {
   }, []);
 
   return (
-    <div className="sidebar">
+    <div className={responsive ? "sidebar display" : "sidebar"}>
       <div className="sidebar__header">
         <IconButton>
           <Avatar src={user?.photoURL} />

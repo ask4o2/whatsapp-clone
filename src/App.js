@@ -1,13 +1,34 @@
-import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { useStateValue } from "./StateProvider";
 import "./App.css";
 import Chat from "./Chat";
 import Login from "./Login";
 import Sidebar from "./Sidebar";
+import { useEffect } from "react";
+import { getUser, login, logout } from "./store/appSlice";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
 
 function App() {
-  const [{ user }, dispatch] = useStateValue();
+  const user = useSelector(getUser);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (userAuth) => {
+      if (userAuth) {
+        dispatch(
+          login({
+            displayName: userAuth.displayName,
+            uid: userAuth.uid,
+            photoUrl: userAuth.photoUrl,
+          })
+        );
+      } else {
+        dispatch(logout());
+      }
+    });
+  }, [dispatch]);
+
   return (
     // BEM naming convention
     <div className="app">
@@ -16,10 +37,9 @@ function App() {
       ) : (
         <div className="app__body">
           <Router>
-            <Sidebar />
             <Routes>
+              <Route path="/" exact element={<Sidebar />} />
               <Route path="/rooms/:roomId" element={<Chat />} />
-              <Route path="/" />
             </Routes>
           </Router>
         </div>

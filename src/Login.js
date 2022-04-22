@@ -3,20 +3,23 @@ import { signInWithPopup } from "firebase/auth";
 import React from "react";
 import { auth, provider } from "./firebase";
 import "./Login.css";
-import { actionTypes } from "./reducer";
-import { useStateValue } from "./StateProvider";
+import { useDispatch } from "react-redux";
+import { login } from "./store/appSlice";
 
 function Login() {
-  const [{}, dispatch] = useStateValue();
+  const dispatch = useDispatch();
 
   const signIn = () => {
     signInWithPopup(auth, provider)
-      .then((result) =>
-        dispatch({
-          type: actionTypes.SET_USER,
-          user: result.user,
-        })
-      )
+      .then((res) => {
+        const userCred = {
+          displayName: res.user.displayName,
+          uid: res.user.uid,
+          photoUrl: res.user.photoURL,
+        };
+        dispatch(login(userCred));
+        // console.log(res.user);
+      })
       .catch((err) => alert(err.message));
   };
 
